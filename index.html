@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super Pixel Adventure</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-container">
+        <canvas id="gameCanvas" width="800" height="500"></canvas>
+        <div id="start-screen">
+            <h1>Super Pixel Adventure</h1>
+            <p>화살표 키로 이동, 스페이스바로 점프</p>
+            <button id="startBtn">게임 시작</button>
+        </div>
+        <div id="game-over-screen" class="hidden">
+            <h1>Game Over</h1>
+            <p id="final-score"></p>
+            <button id="restartBtn">다시 시작</button>
+        </div>
+        <div id="clear-screen" class="hidden">
+            <h1>Stage Clear!</h1>
+            <p id="clear-score"></p>
+            <button id="nextBtn">다음 스테이지</button>
+        </div>
+    </div>
+    <script src="game.js"></script>
+</body>
+</html>
