@@ -40,8 +40,8 @@ const LEVELS = [
         '                                  5     ',
         '       3 3 3       3 3          11111    ',
         '      222222      22222    11           ',
-        '  P        4         4    11            ',
-        ' 1111 1111 1111 1111 1111111            ',
+        '  P                      11            ',
+        ' 1111 1111 4111 1111 1111111            ',
         '11111 1111 1111 1111 1111111            ',
         '111111111111111 11111111111111111       ',
         '111111111111111 11111111111111111       ',
@@ -54,9 +54,9 @@ const LEVELS = [
         '                                 5      ',
         '   3 3        3 3             1111      ',
         '  22222      22222       11              ',
-        '          4         4   11              ',
-        '  P  4  11111  1111 111111              ',
-        ' 111 111    6  6   6                    ',
+        '                        11              ',
+        '  P     11111  1111 111111              ',
+        ' 111 111 4  6  6  4 6                   ',
         '111111111111111  1111111111111111       ',
         '111111111111111  1111111111111111       ',
         '111111111111111  1111111111111111       ',
@@ -68,10 +68,10 @@ const LEVELS = [
         '                                5       ',
         '                              1111      ',
         '     3       3           11             ',
-        '    222     222    4    11              ',
-        '         4       111  11               ',
+        '    222     222         11              ',
+        '                4  111 11              ',
         '  P     111  6       11                ',
-        ' 111       1666  111111                ',
+        ' 111  4    1666  111111                ',
         '11111  111111111111111111111            ',
         '11111  111111111111111111111            ',
         '11111  111111111111111111111            ',
@@ -356,33 +356,68 @@ function drawPlayer() {
     const x = player.x - camera.x;
     const y = player.y;
     const f = player.facing;
+    const running = Math.abs(player.vx) > 0.5;
+    const legOffset = running && player.onGround
+        ? Math.sin(player.frame * Math.PI / 2) * 4 : 0;
 
-    // Body
-    rect(x + 6, y + 10, 20, 18, '#e94560');
+    // Scarf (flowing behind)
+    ctx.fillStyle = '#e74c3c';
+    const scarfWave = Math.sin(Date.now() / 120) * 3;
+    ctx.beginPath();
+    ctx.moveTo(x + 16 - f * 4, y + 8);
+    ctx.lineTo(x + 16 - f * 18, y + 6 + scarfWave);
+    ctx.lineTo(x + 16 - f * 22, y + 14 + scarfWave);
+    ctx.lineTo(x + 16 - f * 4, y + 14);
+    ctx.fill();
+
+    // Legs
+    ctx.fillStyle = '#1a1a2e';
+    ctx.fillRect(x + 8, y + 28 - legOffset, 6, 10);
+    ctx.fillRect(x + 18, y + 28 + legOffset, 6, 10);
+
+    // Body (ninja outfit)
+    rect(x + 6, y + 10, 20, 18, '#2c2c54');
+
+    // Belt
+    rect(x + 6, y + 20, 20, 3, '#8b7355');
+    // Belt buckle
+    rect(x + 13, y + 19, 6, 5, '#ffd700');
+
+    // Arms
+    ctx.fillStyle = '#2c2c54';
+    if (running && player.onGround) {
+        // Running pose – arms back
+        ctx.fillRect(x + (f === 1 ? 0 : 24), y + 12, 6, 4);
+    } else if (!player.onGround) {
+        // Jumping – arms up
+        ctx.fillRect(x + 2, y + 6, 5, 4);
+        ctx.fillRect(x + 25, y + 6, 5, 4);
+    } else {
+        ctx.fillRect(x + 1, y + 14, 5, 4);
+        ctx.fillRect(x + 26, y + 14, 5, 4);
+    }
 
     // Head
     rect(x + 8, y, 16, 14, '#ffd6a5');
 
-    // Eyes
+    // Mask (covers lower face)
+    rect(x + 7, y + 7, 18, 7, '#2c2c54');
+
+    // Headband
+    rect(x + 6, y + 3, 20, 4, '#e74c3c');
+    // Headband knot (trailing end)
+    ctx.fillStyle = '#e74c3c';
+    ctx.fillRect(x + (f === 1 ? 4 : 24), y + 2, 4, 8);
+
+    // Eyes (sharp ninja eyes)
     ctx.fillStyle = '#fff';
-    ctx.fillRect(x + (f === 1 ? 16 : 10), y + 4, 6, 5);
-    ctx.fillStyle = '#222';
-    ctx.fillRect(x + (f === 1 ? 19 : 11), y + 5, 3, 3);
+    ctx.fillRect(x + (f === 1 ? 14 : 10), y + 4, 8, 3);
+    ctx.fillStyle = '#111';
+    ctx.fillRect(x + (f === 1 ? 18 : 12), y + 4, 4, 3);
 
-    // Hat
-    rect(x + 4, y - 4, 24, 6, '#e94560');
-    rect(x + 8, y - 8, 16, 6, '#e94560');
-
-    // Legs – animated
-    const legOffset = player.onGround && Math.abs(player.vx) > 0.5
-        ? Math.sin(player.frame * Math.PI / 2) * 4 : 0;
-    rect(x + 8, y + 28, 6, 10, '#0f3460');
-    rect(x + 18, y + 28, 6, 10, '#0f3460');
-    if (Math.abs(player.vx) > 0.5 && player.onGround) {
-        ctx.fillStyle = '#0f3460';
-        ctx.fillRect(x + 8 - legOffset, y + 28, 6, 10);
-        ctx.fillRect(x + 18 + legOffset, y + 28, 6, 10);
-    }
+    // Shuriken on belt (small detail)
+    ctx.fillStyle = '#c0c0c0';
+    ctx.fillRect(x + 8, y + 21, 3, 3);
 }
 
 function drawEnemies() {
@@ -390,21 +425,58 @@ function drawEnemies() {
         if (!e.alive) continue;
         const x = e.x - camera.x;
         const y = e.y;
+        const bounce = Math.sin(Date.now() / 200 + e.startX) * 3;
 
-        // Body
-        rect(x + 2, y + 10, 32, 22, '#9b59b6');
-        // Head
-        rect(x + 6, y + 2, 24, 14, '#9b59b6');
+        // Shadow
+        ctx.fillStyle = 'rgba(0,0,0,0.2)';
+        ctx.beginPath();
+        ctx.ellipse(x + 18, y + TILE, 16, 4, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Slime body (dome shape)
+        ctx.fillStyle = '#27ae60';
+        ctx.beginPath();
+        ctx.ellipse(x + 18, y + TILE - 8 + bounce, 18, 14, 0, Math.PI, 0);
+        ctx.ellipse(x + 18, y + TILE - 8 + bounce, 18, 8, 0, 0, Math.PI);
+        ctx.fill();
+
+        // Slime highlight
+        ctx.fillStyle = '#2ecc71';
+        ctx.beginPath();
+        ctx.ellipse(x + 14, y + TILE - 16 + bounce, 8, 6, -0.3, Math.PI, 0);
+        ctx.fill();
+
+        // Shine
+        ctx.fillStyle = 'rgba(255,255,255,0.3)';
+        ctx.beginPath();
+        ctx.ellipse(x + 12, y + TILE - 18 + bounce, 4, 3, -0.3, 0, Math.PI * 2);
+        ctx.fill();
+
         // Eyes
         ctx.fillStyle = '#fff';
-        ctx.fillRect(x + 8, y + 6, 8, 6);
-        ctx.fillRect(x + 20, y + 6, 8, 6);
-        ctx.fillStyle = '#e74c3c';
-        ctx.fillRect(x + 12, y + 8, 4, 4);
-        ctx.fillRect(x + 22, y + 8, 4, 4);
-        // Feet
-        rect(x + 4, y + 32, 10, 8, '#7d3c98');
-        rect(x + 22, y + 32, 10, 8, '#7d3c98');
+        ctx.beginPath();
+        ctx.arc(x + 12, y + TILE - 12 + bounce, 5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(x + 24, y + TILE - 12 + bounce, 5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Pupils (look toward player)
+        const lookDir = player.x > e.x ? 1.5 : -1.5;
+        ctx.fillStyle = '#222';
+        ctx.beginPath();
+        ctx.arc(x + 12 + lookDir, y + TILE - 11 + bounce, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(x + 24 + lookDir, y + TILE - 11 + bounce, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Mouth
+        ctx.strokeStyle = '#1a7a42';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(x + 18, y + TILE - 6 + bounce, 5, 0.1, Math.PI - 0.1);
+        ctx.stroke();
     }
 }
 
